@@ -16,10 +16,10 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
     // TODO: Physics updates'n'stuff
 
     pushState(GameState(
-      ((1, 1), 3.14, 50),
-      ((5, 5), 6.28, 75),
-      immutable.Set[(Int, Int)](),
-      immutable.Set[(Int, Int)]()))
+      ((150, 300), 3.1415926535897932, 50),
+      ((100, 300), 0, 75),
+      immutable.Set[(Int, Int)]((25, 25), (100, 100)),
+      immutable.Set[(Int, Int)]((10, 10), (50, 50))))
   }
 
   var stop: () => _ = _

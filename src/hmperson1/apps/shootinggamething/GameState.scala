@@ -12,10 +12,10 @@ class GameState(
   val player1: ((Int, Int), Double, Int),
   val player2: ((Int, Int), Double, Int),
   val bullets: Set[(Int, Int)],
-  val passives: Set[(Int, Int)])
+  val rocks: Set[(Int, Int)])
 
 object GameState {
-  def apply(player1: ((Int, Int), Double, Int), player2: ((Int, Int), Double, Int), bullets: Set[(Int, Int)], passives: Set[(Int, Int)]): GameState = {
-    new GameState(player1, player2, bullets, passives)
+  def apply(player1: ((Int, Int), Double, Int), player2: ((Int, Int), Double, Int), bullets: Set[(Int, Int)], rocks: Set[(Int, Int)]): GameState = {
+    new GameState(player1, player2, bullets, rocks)
   }
 }

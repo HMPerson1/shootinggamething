@@ -13,11 +13,9 @@ import scala.swing.{ Frame, Swing }
 class ShootingGameThing {
 
   private val ticker = Ticker(state_=)
-
   private var currentState: GameState = _
 
   def state_=(state: GameState): Unit = synchronized { currentState = state }
-
   def state: GameState = synchronized { currentState }
 
   // Start!
@@ -33,6 +31,10 @@ class ShootingGameThing {
 }
 
 object ShootingGameThing {
+  val PlayerRadius = 20
+  val BulletRadius = 4
+  val RockRadius = 10
+  
   def main(args: Array[String]): Unit = {
     new ShootingGameThing
   }
