@@ -4,6 +4,7 @@
 package hmperson1.apps.shootinggamething
 
 import scala.swing.{ Frame, Swing }
+import java.awt.event.KeyListener
 
 /**
  * A game in which you shoot things.
@@ -21,11 +22,15 @@ class ShootingGameThing {
   // Start!
   Swing.onEDTWait {
     val frame = new Frame { override def closeOperation() = ticker.stop() }
-    frame.contents = new Renderer(state _)
+    val renderer = new Renderer(state _)
+    renderer.keys.reactions += ticker.keyReaction
+    frame.contents = renderer
     frame.title = "Shooting Game Thing"
     frame.pack()
+    frame.minimumSize = frame.size
 
     ticker.start()
+    renderer.requestFocusInWindow()
     frame.visible = true
   }
 }
@@ -33,8 +38,8 @@ class ShootingGameThing {
 object ShootingGameThing {
   val PlayerRadius = 20
   val BulletRadius = 4
-  val RockRadius = 10
-  
+  val RockRadius = 15
+
   def main(args: Array[String]): Unit = {
     new ShootingGameThing
   }

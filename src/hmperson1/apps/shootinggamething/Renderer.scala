@@ -15,7 +15,7 @@ class Renderer(state: () => GameState) extends Component {
   import Renderer._
   import ShootingGameThing.{ main => _, _ }
 
-  preferredSize = new Dimension(500, 500)
+  preferredSize = new Dimension(540, 500)
   minimumSize = preferredSize
 
   override def paint(g: Graphics2D): Unit = {
@@ -24,6 +24,12 @@ class Renderer(state: () => GameState) extends Component {
     // Clear
     g.setColor(ColorClear)
     g.fillRect(0, 0, size.width, size.height)
+
+    // Clip:
+    // 20 - 500 - 20
+    // hud-arena-hud
+    g.setClip(20, 0, 500, 500)
+    g.translate(20, 0)
 
     // Paint rocks
     for (p <- s.rocks) {
@@ -41,11 +47,20 @@ class Renderer(state: () => GameState) extends Component {
       paintCircle(g, x, y, BulletRadius, ColorBulletFill, ColorBulletOutline)
     }
 
+    // Reset clip
+    g.translate(-20, 0)
+    g.setClip(null)
+
     // Paint health bars
-    g.setColor(Color.RED)
-    g.fillRect(0, 480, s.player1._3 * 5, 10)
-    g.setColor(Color.BLUE)
-    g.fillRect(0, 490, s.player2._3 * 5, 10)
+    g.setColor(ColorPlayer1Health)
+    g.fillRect(0, size.height - s.player1._3 * 5, SizePlayerHealth, s.player1._3 * 5)
+    g.setColor(ColorPlayer2Health)
+    g.fillRect(size.width - SizePlayerHealth, size.height - s.player2._3 * 5, SizePlayerHealth, s.player2._3 * 5)
+
+    // Paint shooting timer bars
+    g.setColor(ColorPlayerTimer)
+    g.fillRect(SizePlayerHealth, s.player1._4 * 10, SizePlayerTimer, size.height - s.player1._4 * 10)
+    g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * 10, SizePlayerTimer, size.height - s.player2._4 * 10)
 
     peer.repaint()
   }
@@ -70,6 +85,10 @@ object Renderer {
 
   private val ColorPlayer1Health = Color.RED
   private val ColorPlayer2Health = Color.BLUE
+  private val ColorPlayerTimer = Color.BLACK
+
+  private val SizePlayerHealth = 15
+  private val SizePlayerTimer = 5
 
   private def paintCircle(g: Graphics2D, cx: Int, cy: Int, r: Int, fill: Color, outline: Color) {
     val x = cx - r
@@ -82,10 +101,10 @@ object Renderer {
     g.drawOval(x, y, h, h)
   }
 
-  private def paintPlayer(g: Graphics2D, player: ((Int, Int), Double, Int), color: Color) {
+  private def paintPlayer(g: Graphics2D, player: ((Int, Int), Double, Int, Int), color: Color) {
     import math.{ Pi, sin, cos }
 
-    val ((x, y), rot, _) = player
+    val ((x, y), rot, _, _) = player
     val xs = (0 to 2) map { n: Int => (+20 * cos(rot + n * 2 * Pi / 3) + x).round.toInt }
     val ys = (0 to 2) map { n: Int => (-20 * sin(rot + n * 2 * Pi / 3) + y).round.toInt }
     val base = new Polygon(xs toArray, ys toArray, 3)
@@ -99,9 +118,10 @@ object Renderer {
 
     // Point
     g.setColor(ColorPlayerPoint)
-    g.setClip(base)
+    val c = g.getClip()
+    g.clip(base)
     g.fillOval(xs(0) - 6, ys(0) - 6, 12, 12)
-    g.setClip(null)
+    g.setClip(c)
 
     // Outline
     g.setColor(ColorPlayerOutline)
