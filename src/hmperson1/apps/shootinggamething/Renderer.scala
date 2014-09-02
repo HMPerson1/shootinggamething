@@ -3,8 +3,10 @@
  */
 package hmperson1.apps.shootinggamething
 
-import java.awt.{ Color, Dimension, Polygon }
-import scala.swing.{ Component, Graphics2D }
+import java.awt.{Color, Dimension, Polygon}
+import scala.math.{Pi, cos, sin}
+import scala.swing.{Component, Graphics2D}
+import ShootingGameThing.{ ArenaSize, BulletRadius, MaxHealth, MaxTimer, PlayerRadius, RockRadius }
 
 /**
  * Renders stuff.
@@ -13,9 +15,8 @@ import scala.swing.{ Component, Graphics2D }
  */
 class Renderer(state: () => GameState) extends Component {
   import Renderer._
-  import ShootingGameThing.{ main => _, _ }
 
-  preferredSize = new Dimension(540, 500)
+  preferredSize = new Dimension(SizeHud + ArenaSize + SizeHud, ArenaSize)
   minimumSize = preferredSize
 
   override def paint(g: Graphics2D): Unit = {
@@ -28,8 +29,8 @@ class Renderer(state: () => GameState) extends Component {
     // Clip:
     // 20 - 500 - 20
     // hud-arena-hud
-    g.setClip(20, 0, 500, 500)
-    g.translate(20, 0)
+    g.setClip(SizeHud, 0, size.width - SizeHud - SizeHud, size.width)
+    g.translate(SizeHud, 0)
 
     // Paint rocks
     for (p <- s.rocks) {
@@ -48,19 +49,19 @@ class Renderer(state: () => GameState) extends Component {
     }
 
     // Reset clip
-    g.translate(-20, 0)
+    g.translate(-SizeHud, 0)
     g.setClip(null)
 
     // Paint health bars
     g.setColor(ColorPlayer1Health)
-    g.fillRect(0, size.height - s.player1._3 * 5, SizePlayerHealth, s.player1._3 * 5)
+    g.fillRect(0, size.height - s.player1._3 * ArenaSize / MaxHealth, SizePlayerHealth, s.player1._3 * ArenaSize / MaxHealth)
     g.setColor(ColorPlayer2Health)
-    g.fillRect(size.width - SizePlayerHealth, size.height - s.player2._3 * 5, SizePlayerHealth, s.player2._3 * 5)
+    g.fillRect(size.width - SizePlayerHealth, size.height - s.player2._3 * ArenaSize / MaxHealth, SizePlayerHealth, s.player2._3 * ArenaSize / MaxHealth)
 
     // Paint shooting timer bars
     g.setColor(ColorPlayerTimer)
-    g.fillRect(SizePlayerHealth, s.player1._4 * 10, SizePlayerTimer, size.height - s.player1._4 * 10)
-    g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * 10, SizePlayerTimer, size.height - s.player2._4 * 10)
+    g.fillRect(SizePlayerHealth, s.player1._4 * ArenaSize / MaxTimer, SizePlayerTimer, size.height - s.player1._4 * ArenaSize / MaxTimer)
+    g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * ArenaSize / MaxTimer, SizePlayerTimer, size.height - s.player2._4 * ArenaSize / MaxTimer)
 
     peer.repaint()
   }
@@ -87,8 +88,11 @@ object Renderer {
   private val ColorPlayer2Health = Color.BLUE
   private val ColorPlayerTimer = Color.BLACK
 
+  private val SizePlayerPoint = 6
+
   private val SizePlayerHealth = 15
   private val SizePlayerTimer = 5
+  private val SizeHud = SizePlayerHealth + SizePlayerTimer
 
   private def paintCircle(g: Graphics2D, cx: Int, cy: Int, r: Int, fill: Color, outline: Color) {
     val x = cx - r
@@ -102,15 +106,14 @@ object Renderer {
   }
 
   private def paintPlayer(g: Graphics2D, player: ((Int, Int), Double, Int, Int), color: Color) {
-    import math.{ Pi, sin, cos }
 
     val ((x, y), rot, _, _) = player
-    val xs = (0 to 2) map { n: Int => (+20 * cos(rot + n * 2 * Pi / 3) + x).round.toInt }
-    val ys = (0 to 2) map { n: Int => (-20 * sin(rot + n * 2 * Pi / 3) + y).round.toInt }
+    val xs = (0 to 2) map { n: Int => (+PlayerRadius * cos(rot + n * 2 * Pi / 3) + x).round.toInt }
+    val ys = (0 to 2) map { n: Int => (-PlayerRadius * sin(rot + n * 2 * Pi / 3) + y).round.toInt }
     val base = new Polygon(xs toArray, ys toArray, 3)
 
     // Collision circle
-    paintCircle(g, x, y, 20, ColorPlayerHitFill, ColorPlayerHitOutline)
+    paintCircle(g, x, y, PlayerRadius, ColorPlayerHitFill, ColorPlayerHitOutline)
 
     // Base
     g.setColor(color)
@@ -120,7 +123,7 @@ object Renderer {
     g.setColor(ColorPlayerPoint)
     val c = g.getClip()
     g.clip(base)
-    g.fillOval(xs(0) - 6, ys(0) - 6, 12, 12)
+    g.fillOval(xs(0) - SizePlayerPoint, ys(0) - SizePlayerPoint, 2 * SizePlayerPoint, 2 * SizePlayerPoint)
     g.setClip(c)
 
     // Outline
