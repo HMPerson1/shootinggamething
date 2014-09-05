@@ -5,6 +5,7 @@ package hmperson1.apps.shootinggamething
 
 import java.util.concurrent.{ ScheduledThreadPoolExecutor, TimeUnit }
 import scala.collection.mutable
+import scala.language.postfixOps
 import scala.swing.Reactions.Reaction
 import scala.swing.event.{ Event, Key, KeyPressed, KeyReleased }
 import scala.util.Random
@@ -48,6 +49,7 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
     doShooting()
     updatePos()
     doCollisions()
+    checkDeath()
 
     def roundPair(x: (Double, Double)): (Int, Int) = {
       (x._1.round.toInt, x._2.round.toInt)
@@ -170,14 +172,14 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
     player1Rot += player1RotVel
     player2Rot += player2RotVel
     // Keep Onscreen
-    if (PlayerRadius > player1Pos._1)             { player1Pos = (PlayerRadius, player1Pos._2);             player1Vel = (0, player1Vel._2) }
+    if (PlayerRadius > player1Pos._1) { player1Pos = (PlayerRadius, player1Pos._2); player1Vel = (0, player1Vel._2) }
     if (player1Pos._1 > ArenaSize - PlayerRadius) { player1Pos = (ArenaSize - PlayerRadius, player1Pos._2); player1Vel = (0, player1Vel._2) }
-    if (PlayerRadius > player1Pos._2)             { player1Pos = (player1Pos._1, PlayerRadius);             player1Vel = (player1Vel._1, 0) }
+    if (PlayerRadius > player1Pos._2) { player1Pos = (player1Pos._1, PlayerRadius); player1Vel = (player1Vel._1, 0) }
     if (player1Pos._2 > ArenaSize - PlayerRadius) { player1Pos = (player1Pos._1, ArenaSize - PlayerRadius); player1Vel = (player1Vel._1, 0) }
 
-    if (PlayerRadius > player2Pos._1)             { player2Pos = (PlayerRadius, player2Pos._2);             player2Vel = (0, player2Vel._2) }
+    if (PlayerRadius > player2Pos._1) { player2Pos = (PlayerRadius, player2Pos._2); player2Vel = (0, player2Vel._2) }
     if (player2Pos._1 > ArenaSize - PlayerRadius) { player2Pos = (ArenaSize - PlayerRadius, player2Pos._2); player2Vel = (0, player2Vel._2) }
-    if (PlayerRadius > player2Pos._2)             { player2Pos = (player2Pos._1, PlayerRadius);             player2Vel = (player2Vel._1, 0) }
+    if (PlayerRadius > player2Pos._2) { player2Pos = (player2Pos._1, PlayerRadius); player2Vel = (player2Vel._1, 0) }
     if (player2Pos._2 > ArenaSize - PlayerRadius) { player2Pos = (player2Pos._1, ArenaSize - PlayerRadius); player2Vel = (player2Vel._1, 0) }
 
     // Bullets
@@ -244,9 +246,24 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
     }
   }
 
-  var stop: () => _ = _
+  private def checkDeath() = {
+    if (player1Health <= 0 || player2Health <= 0) stop()
+  }
+
+  private var _stop: () => _ = _
+
+  def stop() = {
+    _stop()
+  }
 
   def start() = Ticker.start(this)
+
+  def stateString: String = {
+    if (player1Health <= 0 && player2Health <= 0) return "Tie!"
+    if (player1Health <= 0) return "Player 2 Won!"
+    if (player2Health <= 0) return "Player 1 Won!"
+    return "Game ended unexpectedly"
+  }
 }
 
 object Ticker {
@@ -268,7 +285,7 @@ object Ticker {
 
   def start(t: Ticker): Unit = {
     val future = timer.scheduleAtFixedRate(t, 0, 50, TimeUnit.MILLISECONDS)
-    t.stop = () => future.cancel(false)
+    t._stop = () => future.cancel(false)
   }
 
   private def colliding(a: (Double, Double), ar: Double, b: (Double, Double), br: Double): Boolean = {

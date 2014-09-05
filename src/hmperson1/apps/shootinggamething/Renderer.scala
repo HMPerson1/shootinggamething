@@ -3,9 +3,9 @@
  */
 package hmperson1.apps.shootinggamething
 
-import java.awt.{Color, Dimension, Polygon}
-import scala.math.{Pi, cos, sin}
-import scala.swing.{Component, Graphics2D}
+import java.awt.{ Color, Dimension, Polygon }
+import scala.math.{ Pi, cos, sin }
+import scala.swing.{ Component, Graphics2D }
 import ShootingGameThing.{ ArenaSize, BulletRadius, MaxHealth, MaxTimer, PlayerRadius, RockRadius }
 
 /**
@@ -21,6 +21,7 @@ class Renderer(state: () => GameState) extends Component {
 
   override def paint(g: Graphics2D): Unit = {
     val s = state()
+    if (s == null) { peer.repaint(); return }
 
     // Clear
     g.setColor(ColorClear)
