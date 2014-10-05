@@ -16,43 +16,58 @@ import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+/**
+ * A panel that displays a history of past games, a start button, and an exit
+ * button.
+ * 
+ * @author HMPerson1
+ */
 public class StartPanel extends JPanel {
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 4975374297843088070L;
+	/**
+	 * The table model used for modifying the history table.
+	 */
 	private final DefaultTableModel model;
-	private final Function0<Unit> startCallback;
-	private final Function0<Unit> exitCallback;
 
 	/**
 	 * Create the panel.
 	 */
-	public StartPanel(Function0<Unit> startCallback, Function0<Unit> exitCallback) {
-		
-		this.startCallback = startCallback;
-		this.exitCallback = exitCallback;
-		
+	public StartPanel(Function0<Unit> startCallback,
+			Function0<Unit> exitCallback) {
+
 		JScrollPane scrollPane = new JScrollPane();
 		JButton btnStart = new JButton("Start");
 		JButton btnExit = new JButton("Exit");
 		JTable table = new JTable();
-		
+
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				StartPanel.this.startCallback.apply();
+				startCallback.apply();
 			}
 		});
 		btnExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				StartPanel.this.exitCallback.apply();
+				exitCallback.apply();
 			}
 		});
-		
-		model = new DefaultTableModel(new String[] {"History"}, 0) {
+
+		model = new DefaultTableModel(new String[] { "History" }, 0) {
+			/**
+			 * Serial Version UID
+			 */
+			private static final long serialVersionUID = -356332616103933906L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 		table.setModel(model);
-		
+
+		// Layout
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -75,14 +90,20 @@ public class StartPanel extends JPanel {
 					.addComponent(btnExit)
 					.addContainerGap())
 		);
-		
+
 		table.setFillsViewportHeight(true);
 		scrollPane.setViewportView(table);
 		setLayout(groupLayout);
 		setPreferredSize(new Dimension(200, 200));
 	}
-	
-	public void addToHistory(String result) {
-		model.addRow(new Object[] { result });
+
+	/**
+	 * Adds the given string to the history table.
+	 * 
+	 * @param str
+	 *            the string to be added
+	 */
+	public void addToHistory(String str) {
+		model.addRow(new Object[] { str });
 	}
 }

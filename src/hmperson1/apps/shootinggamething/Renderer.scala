@@ -4,31 +4,36 @@
 package hmperson1.apps.shootinggamething
 
 import java.awt.{ Color, Dimension, Polygon }
+import scala.language.postfixOps
 import scala.math.{ Pi, cos, sin }
 import scala.swing.{ Component, Graphics2D }
-import ShootingGameThing.{ ArenaSize, BulletRadius, MaxHealth, MaxTimer, PlayerRadius, RockRadius }
+import ShootingGameThing._
 
 /**
  * Renders stuff.
  *
  * @author HMPerson1
  */
-class Renderer(state: () => GameState) extends Component {
+class Renderer(state: () => Option[GameState]) extends Component {
   import Renderer._
 
-  preferredSize = new Dimension(SizeHud + ArenaSize + SizeHud, ArenaSize)
+  preferredSize = new Dimension(SizeHud + SizeArena + SizeHud, SizeArena)
   minimumSize = preferredSize
 
   override def paint(g: Graphics2D): Unit = {
-    val s = state()
-    if (s == null) { peer.repaint(); return }
+    // Constantly redraw
+    peer.repaint()
+
+    val s = state() match {
+      case Some(x) => x
+      case None    => return
+    }
 
     // Clear
     g.setColor(ColorClear)
     g.fillRect(0, 0, size.width, size.height)
 
     // Clip:
-    // 20 - 500 - 20
     // hud-arena-hud
     g.setClip(SizeHud, 0, size.width - SizeHud - SizeHud, size.width)
     g.translate(SizeHud, 0)
@@ -36,7 +41,7 @@ class Renderer(state: () => GameState) extends Component {
     // Paint rocks
     for (p <- s.rocks) {
       val (x, y) = p
-      paintCircle(g, x, y, RockRadius, ColorRockFill, ColorRockOutline)
+      paintCircle(g, x, y, RadiusRock, ColorRockFill, ColorRockOutline)
     }
 
     // Paint players
@@ -46,7 +51,7 @@ class Renderer(state: () => GameState) extends Component {
     // Paint bullets
     for (b <- s.bullets) {
       val (x, y) = b
-      paintCircle(g, x, y, BulletRadius, ColorBulletFill, ColorBulletOutline)
+      paintCircle(g, x, y, RadiusBullet, ColorBulletFill, ColorBulletOutline)
     }
 
     // Reset clip
@@ -55,16 +60,14 @@ class Renderer(state: () => GameState) extends Component {
 
     // Paint health bars
     g.setColor(ColorPlayer1Health)
-    g.fillRect(0, size.height - s.player1._3 * ArenaSize / MaxHealth, SizePlayerHealth, s.player1._3 * ArenaSize / MaxHealth)
+    g.fillRect(0, size.height - s.player1._3 * SizeArena / HealthMax, SizePlayerHealth, s.player1._3 * SizeArena / HealthMax)
     g.setColor(ColorPlayer2Health)
-    g.fillRect(size.width - SizePlayerHealth, size.height - s.player2._3 * ArenaSize / MaxHealth, SizePlayerHealth, s.player2._3 * ArenaSize / MaxHealth)
+    g.fillRect(size.width - SizePlayerHealth, size.height - s.player2._3 * SizeArena / HealthMax, SizePlayerHealth, s.player2._3 * SizeArena / HealthMax)
 
     // Paint shooting timer bars
     g.setColor(ColorPlayerTimer)
-    g.fillRect(SizePlayerHealth, s.player1._4 * ArenaSize / MaxTimer, SizePlayerTimer, size.height - s.player1._4 * ArenaSize / MaxTimer)
-    g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * ArenaSize / MaxTimer, SizePlayerTimer, size.height - s.player2._4 * ArenaSize / MaxTimer)
-
-    peer.repaint()
+    g.fillRect(SizePlayerHealth, s.player1._4 * SizeArena / TimerMax, SizePlayerTimer, size.height - s.player1._4 * SizeArena / TimerMax)
+    g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * SizeArena / TimerMax, SizePlayerTimer, size.height - s.player2._4 * SizeArena / TimerMax)
   }
 }
 
@@ -109,12 +112,12 @@ object Renderer {
   private def paintPlayer(g: Graphics2D, player: ((Int, Int), Double, Int, Int), color: Color) {
 
     val ((x, y), rot, _, _) = player
-    val xs = (0 to 2) map { n: Int => (+PlayerRadius * cos(rot + n * 2 * Pi / 3) + x).round.toInt }
-    val ys = (0 to 2) map { n: Int => (-PlayerRadius * sin(rot + n * 2 * Pi / 3) + y).round.toInt }
+    val xs = (0 to 2) map { n: Int => (+RadiusPlayer * cos(rot + n * 2 * Pi / 3) + x).round.toInt }
+    val ys = (0 to 2) map { n: Int => (-RadiusPlayer * sin(rot + n * 2 * Pi / 3) + y).round.toInt }
     val base = new Polygon(xs toArray, ys toArray, 3)
 
     // Collision circle
-    paintCircle(g, x, y, PlayerRadius, ColorPlayerHitFill, ColorPlayerHitOutline)
+    paintCircle(g, x, y, RadiusPlayer, ColorPlayerHitFill, ColorPlayerHitOutline)
 
     // Base
     g.setColor(color)
