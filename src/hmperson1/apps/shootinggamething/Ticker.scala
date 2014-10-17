@@ -19,6 +19,8 @@ import ShootingGameThing._
  */
 class Ticker(pushState: GameState => Unit) extends Runnable {
   import Ticker._
+  
+  private var running = false;
 
   private var player1Pos = (SizeArena * 0.3, SizeArena * 0.5)
   private var player2Pos = (SizeArena * 0.7, SizeArena * 0.5)
@@ -67,7 +69,7 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
       (roundPair(player2Pos), player2Rot, player2Health, player2Cd),
       (bullet1s ++ bullet2s unzip)._1 map roundPair toSet,
       (rocks unzip)._1 map roundPair toSet,
-      GameResult.InProgress
+      running
     ))
   }
 
@@ -282,7 +284,10 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
   /**
    * Stops the game. Throws an exception if the game has not been started.
    */
-  def stop() = _stop()
+  def stop() = {
+    _stop()
+    running = false;
+  }
 
   /**
    * The function called to start this Ticker. It self-destructs after its first call.
@@ -295,7 +300,10 @@ class Ticker(pushState: GameState => Unit) extends Runnable {
   /**
    * Starts the game. Throws an exception if the game has already been started.
    */
-  def start() = _start()
+  def start() = {
+    _start()
+    running = true;
+  }
 
   /**
    * The result of this game.

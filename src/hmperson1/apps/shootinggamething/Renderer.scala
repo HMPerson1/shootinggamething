@@ -4,6 +4,8 @@
 package hmperson1.apps.shootinggamething
 
 import java.awt.{ Color, Dimension, Polygon }
+import java.awt.event.WindowEvent
+import javax.swing.JFrame
 import scala.language.postfixOps
 import scala.math.{ Pi, cos, sin }
 import scala.swing.{ Component, Graphics2D }
@@ -28,6 +30,9 @@ class Renderer(state: () => Option[GameState]) extends Component {
       case Some(x) => x
       case None    => return
     }
+
+    // Close the window when the game is over
+    if (!s.running) closeWindow()
 
     // Clear
     g.setColor(ColorClear)
@@ -68,6 +73,11 @@ class Renderer(state: () => Option[GameState]) extends Component {
     g.setColor(ColorPlayerTimer)
     g.fillRect(SizePlayerHealth, s.player1._4 * SizeArena / TimerMax, SizePlayerTimer, size.height - s.player1._4 * SizeArena / TimerMax)
     g.fillRect(size.width - SizePlayerHealth - SizePlayerTimer, s.player2._4 * SizeArena / TimerMax, SizePlayerTimer, size.height - s.player2._4 * SizeArena / TimerMax)
+  }
+
+  private def closeWindow() = {
+    val window = peer.getTopLevelAncestor().asInstanceOf[JFrame]
+    window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING))
   }
 }
 

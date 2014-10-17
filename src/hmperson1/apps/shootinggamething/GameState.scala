@@ -13,15 +13,15 @@ class GameState(
   val player2: ((Int, Int), Double, Int, Int),
   val bullets: Set[(Int, Int)],
   val rocks: Set[(Int, Int)],
-  val result: GameResult.GameResult)
+  val running: Boolean)
 
 object GameState {
   def apply(player1: ((Int, Int), Double, Int, Int),
             player2: ((Int, Int), Double, Int, Int),
             bullets: Set[(Int, Int)],
             rocks: Set[(Int, Int)],
-            result: GameResult.GameResult): GameState = {
-    new GameState(player1, player2, bullets, rocks, result)
+            running: Boolean): GameState = {
+    new GameState(player1, player2, bullets, rocks, running)
   }
 }
 
